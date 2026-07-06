@@ -117,43 +117,24 @@ async def process_and_reply(event):
     user_message = event.message.text
     logger.info(f"Received message: {user_message} from user {user_id}")
     try:
-        from google.antigravity import Agent, LocalAgentConfig
-        os.makedirs(SAVE_DIR, exist_ok=True)
-        mapped_id = get_mapped_conv_id(user_id)
-        db_path = os.path.join(SAVE_DIR, f"{mapped_id}.db") if mapped_id else None
+        import google.generativeai as genai
         
-        # 1. 判斷是否有既有對話，若有則直接讀取
-        if mapped_id and db_path and os.path.exists(db_path):
-            logger.info(f"Resuming conversation '{mapped_id}' for user {user_id}")
-            config = LocalAgentConfig(
-                conversation_id=mapped_id,
-                save_dir=SAVE_DIR,
-                workspaces=[BASE_DIR],
-                model="gemini-2.5-flash"
-            )
-            async with Agent(config) as agent:
-                response = await agent.chat(user_message)
-                response_text = await response.text()
-        # 2. 若無，則為新使用者，讓 Agy 自動生成資料庫並紀錄對照關係
-        else:
-            logger.info(f"Creating new conversation for user {user_id}")
-            pre_files = set(glob.glob(os.path.join(SAVE_DIR, "*.db")))
-            config = LocalAgentConfig(
-                save_dir=SAVE_DIR,
-                workspaces=[BASE_DIR],
-                model="gemini-2.5-flash"
-            )
-            async with Agent(config) as agent:
-                post_files = set(glob.glob(os.path.join(SAVE_DIR, "*.db")))
-                new_files = post_files - pre_files
-                if new_files:
-                    new_conv_id = os.path.basename(list(new_files)[0]).replace(".db", "")
-                    logger.info(f"Mapped {user_id} to new conversation_id: {new_conv_id}")
-                    set_mapped_conv_id(user_id, new_conv_id)
-                response = await agent.chat(user_message)
-                response_text = await response.text()
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY is not set")
+            
+        genai.configure(api_key=api_key)
+        
+        # 使用 Google 官方套件產生回應
+        model = genai.GenerativeModel('gemini-2.5-flash')
+        response = model.generate_content(user_message)
+        
+        try:
+            response_text = response.text
+        except ValueError:
+            response_text = "抱歉，您的問題我無法回答（可能違反了安全規定）。"
 
-        # 3. 使用 Push API 將 AI Agent 回覆推送到使用者 LINE 對話中
+        # 3. 使用 Push API 回傳到使用者的 LINE
         line_bot_api.push_message(
             user_id,
             TextSendMessage(text=response_text)

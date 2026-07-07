@@ -120,7 +120,6 @@ async def process_and_reply(event):
     try:
         import google.generativeai as genai
         import io
-        from PIL import Image
         global user_chats
         
         api_key = os.getenv("GEMINI_API_KEY")
@@ -154,9 +153,12 @@ async def process_and_reply(event):
             for chunk in message_content.iter_content():
                 image_bytes += chunk
                 
-            image = Image.open(io.BytesIO(image_bytes))
+            image_part = {
+                "mime_type": "image/jpeg",
+                "data": image_bytes
+            }
             prompt = "老闆傳來了一張圖片，請幫我看看這張圖片的內容是什麼，並用小雅秘書的口吻向老闆報告。"
-            response = chat.send_message([prompt, image])
+            response = chat.send_message([prompt, image_part])
         
         try:
             response_text = response.text

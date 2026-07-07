@@ -4,3 +4,4 @@ fastapi
 uvicorn
 python-dotenv
 Pillow
+aiohttp>=3.9.5

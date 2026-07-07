@@ -128,10 +128,10 @@ async def process_and_reply(event):
             
         genai.configure(api_key=api_key)
         
-        # 1. 賦予專屬秘書個性
+        # 設定 Gemini 模型，改用 1.5-flash 來避開 2.5 版嚴格的每日 20 次免費額度限制 (1.5-flash 每天有 1500 次)
         model = genai.GenerativeModel(
-            'gemini-2.5-flash-lite',
-            system_instruction="你現在是一位名叫「小雅」的專屬私人秘書。你的語氣要溫柔、體貼且專業，會在適當的地方加上 Emoji。回答盡量簡潔扼要，處處為老闆（使用者）著想。若老闆傳送圖片，請發揮秘書的觀察力詳細解說。"
+            model_name='gemini-1.5-flash',
+            system_instruction="你現在是一位名叫「小雅」的專業且貼心的專屬秘書。你的語氣要溫柔、慢、柔軟，像協作夥伴給建議。你會在適合的時候加入輕微自嘲風格，像朋友聊天一樣。請用繁體中文回覆，結構條理化，減少贅詞。"
         )
         
         # 2. 處理短期記憶

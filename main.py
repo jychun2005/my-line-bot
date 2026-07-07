@@ -126,7 +126,7 @@ async def process_and_reply(event):
         genai.configure(api_key=api_key)
         
         # 使用 Google 官方套件產生回應
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-2.5-flash-lite')
         response = model.generate_content(user_message)
         
         try:

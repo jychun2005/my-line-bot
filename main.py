@@ -93,6 +93,7 @@ def health_check():
     return {"status": "ok"}
 
 @app.post("/line/webhook")
+@app.post("/callback")
 async def line_webhook(request: Request, background_tasks: BackgroundTasks):
     signature = request.headers.get("X-Line-Signature")
     if not signature:
@@ -146,7 +147,7 @@ async def process_and_reply(event):
             
             # 測試指令
             if user_message.strip().lower() == "/ping":
-                line_bot_api.push_message(user_id, TextSendMessage(text="pong! 系統連線正常！"))
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text="pong! 系統連線正常！"))
                 return
                 
             response = chat.send_message(user_message)
@@ -171,21 +172,21 @@ async def process_and_reply(event):
         except ValueError:
             response_text = "老闆抱歉，這則訊息被安全機制擋下來了🥺"
 
-        # 4. 使用 Push API 回傳給 LINE
-        line_bot_api.push_message(
-            user_id,
+        # 4. 使用 Reply API 回傳給 LINE (免費且不扣推播額度)
+        line_bot_api.reply_message(
+            event.reply_token,
             TextSendMessage(text=response_text)
         )
         logger.info(f"Successfully replied to user {user_id}")
     except Exception as e:
         logger.exception(f"Error handling message: {e}")
         try:
-            line_bot_api.push_message(
-                user_id,
+            line_bot_api.reply_message(
+                event.reply_token,
                 TextSendMessage(text="抱歉，在處理您的請求時發生了錯誤。請稍後再試。")
             )
         except Exception as push_err:
-            logger.error(f"Failed to push error message to LINE: {push_err}")
+            logger.error(f"Failed to reply error message to LINE: {push_err}")
 
 if __name__ == "__main__":
     import uvicorn

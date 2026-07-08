@@ -143,6 +143,12 @@ async def process_and_reply(event):
         if isinstance(event.message, TextMessage):
             user_message = event.message.text
             logger.info(f"Received text message: {user_message} from user {user_id}")
+            
+            # 測試指令
+            if user_message.strip().lower() == "/ping":
+                line_bot_api.push_message(user_id, TextSendMessage(text="pong! 系統連線正常！"))
+                return
+                
             response = chat.send_message(user_message)
             
         elif isinstance(event.message, ImageMessage):

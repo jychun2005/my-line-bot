@@ -129,9 +129,9 @@ async def process_and_reply(event):
             
         genai.configure(api_key=api_key)
         
-        # 設定 Gemini 模型，改用 2.0-flash 來避開 2.5 系列每日 20 次的額度限制
+        # 設定 Gemini 模型，改用 gemini-flash-latest 來避開嚴苛的每日額度限制
         model = genai.GenerativeModel(
-            model_name='gemini-2.0-flash',
+            model_name='gemini-flash-latest',
             system_instruction="你現在是一位名叫「小雅」的專業且貼心的專屬秘書。你的語氣要溫柔、慢、柔軟，像協作夥伴給建議。你會在適合的時候加入輕微自嘲風格，像朋友聊天一樣。請用繁體中文回覆，結構條理化，減少贅詞。"
         )
         
